@@ -1,8 +1,14 @@
 export type Project = {
   id: string
   name: string
-  description: string
-  organization_id: string
+  color: string
+  client_id: string
+  is_archived: boolean
+  billable_rate: number
+  is_billable: boolean
+  estimated_time: number | null
+  spent_time: number
+  is_public: boolean
 }
 
 export type ProjectTimeEntry = {

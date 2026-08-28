@@ -1,14 +1,16 @@
 ---
 import '@awesome.me/webawesome/dist/styles/themes/default.css'
 import getProjectTimeEntries from '../services/projectTimeEntries'
+import getProject from '../services/project'
 import type { ProjectTimeEntry } from '../types'
 
 const vesselIndexProjectId = '7f42c483-e6ba-41ff-bcbc-1f4374a8b068'
 const request = Astro.request
+let date = new Date()
+let isCurrentMonth = true
 
-const today = new Date()
-const currentMonth = today.getMonth() + 1
-const currentYear = today.getFullYear()
+const currentMonth = date.getMonth() + 1
+const currentYear = date.getFullYear()
 const isoMonth = `${currentYear}-${currentMonth.toString().padStart(2, '0')}`
 
 let selectedMonth = isoMonth
@@ -17,12 +19,17 @@ if (request.method === 'POST') {
   const formData = await request.formData()
   const month = formData.get('month') as string
   if (month) {
+    isCurrentMonth = month === isoMonth
     selectedMonth = month
+    date = new Date(month + '-01')
   }
 }
 
 const { start, end } = getDates(selectedMonth)
-const project = await getProjectTimeEntries(vesselIndexProjectId, start, end)
+const projectTimeEntries = await getProjectTimeEntries(vesselIndexProjectId, start, end)
+const totalHours = getTotalHours(projectTimeEntries)
+const project = await getProject(vesselIndexProjectId)
+const totalCost = (totalHours * (project.billable_rate / 100)).toFixed(2)
 
 function getDates(month: string): { start: string; end: string } {
   const [yearStr, monthStr] = month.split('-')
@@ -35,11 +42,20 @@ function getDates(month: string): { start: string; end: string } {
 
   return { start, end }
 }
+
+function getTotalHours(entries: ProjectTimeEntry[]): number {
+  const seconds = entries.reduce((total, entry) => total + (entry.billable ? entry.duration : 0), 0)
+  const hours = (seconds / 60 / 60).toFixed(2)
+  const relativeMinutes = hours.split('.')[1]
+  const minutes = Math.round(60 * Number(relativeMinutes) / 100)
+  return Number(hours.split('.')[0] + '.' + minutes)
+}
 ---
 
 <script>
 import '@webawesome/input/input.js'
 import '@webawesome/button/button.js'
+import '@webawesome/format-date/format-date.js'
 </script>
 
 <html lang="pt">
@@ -59,10 +75,15 @@ import '@webawesome/button/button.js'
       <wa-button type="submit">Buscar</wa-button>
     </form>
 
+    <h2><wa-format-date date={date} month="long" year="numeric" /></h2>
+
+    <p>Total Hours: {totalHours} hours</p>
+    <p>Total Cost: {totalCost} €</p>
+
     {
-      project.data && project.data.length > 0 ? (
+      projectTimeEntries && projectTimeEntries.length > 0 ? (
         <ul>
-          {project.data.map((entry: ProjectTimeEntry) => (
+          {projectTimeEntries.map((entry: ProjectTimeEntry) => (
             <li>
               <strong>{entry.description || ''}</strong>
               {new Date(entry.start).toLocaleString()} - {new Date(entry.end).toLocaleString()} ({Math.round(entry.duration / 60)} mins)

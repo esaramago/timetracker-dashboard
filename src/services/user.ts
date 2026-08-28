@@ -7,5 +7,5 @@ export default async function getUsers() {
     throw new Error(response.message)
   }
 
-  return response
+  return response.data
 }
