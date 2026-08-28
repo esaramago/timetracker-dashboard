@@ -1,17 +1,76 @@
 ---
+import '@awesome.me/webawesome/dist/styles/themes/default.css'
+import getProjectTimeEntries from '../services/projectTimeEntries'
+import type { ProjectTimeEntry } from '../types'
 
+const vesselIndexProjectId = '7f42c483-e6ba-41ff-bcbc-1f4374a8b068'
+const request = Astro.request
+
+const today = new Date()
+const currentMonth = today.getMonth() + 1
+const currentYear = today.getFullYear()
+const isoMonth = `${currentYear}-${currentMonth.toString().padStart(2, '0')}`
+
+let selectedMonth = isoMonth
+
+if (request.method === 'POST') {
+  const formData = await request.formData()
+  const month = formData.get('month') as string
+  if (month) {
+    selectedMonth = month
+  }
+}
+
+const { start, end } = getDates(selectedMonth)
+const project = await getProjectTimeEntries(vesselIndexProjectId, start, end)
+
+function getDates(month: string): { start: string; end: string } {
+  const [yearStr, monthStr] = month.split('-')
+  const year = parseInt(yearStr, 10)
+  const monthNum = parseInt(monthStr, 10)
+  const lastDay = new Date(year, monthNum, 0).getDate()
+
+  const start = `${yearStr}-${monthStr.padStart(2, '0')}-01T00:00:00Z`
+  const end = `${yearStr}-${monthStr.padStart(2, '0')}-${String(lastDay).padStart(2, '0')}T23:59:59Z`
+
+  return { start, end }
+}
 ---
 
-<html lang="en">
+<script>
+import '@webawesome/input/input.js'
+import '@webawesome/button/button.js'
+</script>
+
+<html lang="pt">
 	<head>
 		<meta charset="utf-8" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<link rel="icon" href="/favicon.ico" />
 		<meta name="viewport" content="width=device-width" />
 		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
+		<title>Time Tracker Dashboard</title>
 	</head>
 	<body>
-		<h1>Astro</h1>
+		<h1>Time Tracker Dashboard</h1>
+
+    <form action="" method="post" >
+      <wa-input type="month" name="month" label="Mês" value={selectedMonth} />
+      <wa-button type="submit">Buscar</wa-button>
+    </form>
+
+    {
+      project.data && project.data.length > 0 ? (
+        <ul>
+          {project.data.map((entry: ProjectTimeEntry) => (
+            <li>
+              <strong>{entry.description || ''}</strong>
+              {new Date(entry.start).toLocaleString()} - {new Date(entry.end).toLocaleString()} ({Math.round(entry.duration / 60)} mins)
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p>No time entries found.</p>
+      )}
 	</body>
 </html>
