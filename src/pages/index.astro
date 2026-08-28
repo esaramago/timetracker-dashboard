@@ -5,9 +5,8 @@ import getProject from '../services/project'
 import type { ProjectTimeEntry } from '../types'
 
 const vesselIndexProjectId = '7f42c483-e6ba-41ff-bcbc-1f4374a8b068'
-const request = Astro.request
+const monthParam = Astro.url.searchParams.get('month')
 let date = new Date()
-let isCurrentMonth = true
 
 const currentMonth = date.getMonth() + 1
 const currentYear = date.getFullYear()
@@ -15,14 +14,9 @@ const isoMonth = `${currentYear}-${currentMonth.toString().padStart(2, '0')}`
 
 let selectedMonth = isoMonth
 
-if (request.method === 'POST') {
-  const formData = await request.formData()
-  const month = formData.get('month') as string
-  if (month) {
-    isCurrentMonth = month === isoMonth
-    selectedMonth = month
-    date = new Date(month + '-01')
-  }
+if (monthParam) {
+  selectedMonth = monthParam
+  date = new Date(monthParam + '-01')
 }
 
 const { start, end } = getDates(selectedMonth)
@@ -30,6 +24,9 @@ const projectTimeEntries = await getProjectTimeEntries(vesselIndexProjectId, sta
 const totalHours = getTotalHours(projectTimeEntries)
 const project = await getProject(vesselIndexProjectId)
 const totalCost = (totalHours * (project.billable_rate / 100)).toFixed(2)
+
+const hoursGoal = 60
+const totalHoursPercentage = Math.round((totalHours / hoursGoal) * 100)
 
 function getDates(month: string): { start: string; end: string } {
   const [yearStr, monthStr] = month.split('-')
@@ -56,6 +53,7 @@ function getTotalHours(entries: ProjectTimeEntry[]): number {
 import '@webawesome/input/input.js'
 import '@webawesome/button/button.js'
 import '@webawesome/format-date/format-date.js'
+import '@webawesome/progress-bar/progress-bar.js'
 </script>
 
 <html lang="pt">
@@ -70,15 +68,17 @@ import '@webawesome/format-date/format-date.js'
 	<body>
 		<h1>Time Tracker Dashboard</h1>
 
-    <form action="" method="post" >
+    <form action="" method="get" >
       <wa-input type="month" name="month" label="Mês" value={selectedMonth} />
       <wa-button type="submit">Buscar</wa-button>
     </form>
 
     <h2><wa-format-date date={date} month="long" year="numeric" /></h2>
 
-    <p>Total Hours: {totalHours} hours</p>
-    <p>Total Cost: {totalCost} €</p>
+    <p>Horas este mês: {totalHours} horas ({totalCost} €)</p>
+    <p>Objetivo do mês: {hoursGoal} horas</p>
+
+    <wa-progress-bar value={totalHoursPercentage} />
 
     {
       projectTimeEntries && projectTimeEntries.length > 0 ? (
