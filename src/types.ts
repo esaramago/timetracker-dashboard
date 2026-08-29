@@ -27,5 +27,7 @@ export type ProjectTimeEntry = {
 }
 
 export type Spacing = 'none' | 'xs' | 's' | 'm' | 'l' | 'xl' | '2xl' | '3xl'
-
+export type Align = 'start' | 'center' | 'end'
+export type Justify = Align | 'space-between' | 'space-around' | 'space-evenly'
 export type Break = 'mobile' | 'small'
+export type Direction = 'row' | 'column'

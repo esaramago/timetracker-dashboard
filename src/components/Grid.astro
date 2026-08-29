@@ -1,15 +1,13 @@
 ---
 import type { HTMLTag, Polymorphic } from 'astro/types'
-import type { Spacing, Break } from '@/types'
+import type { Spacing, Break, Align, Justify, Direction } from '../types'
 
-export type Break = 'mobile' | 'small' | (string & {})
-
-export type Props<Tag extends HTMLTag = 'div'> = Polymorphic<{
-  as?: Tag
+type Props<Tag extends HTMLTag = 'div'> = Polymorphic<{
+  as: Tag
   tag?: Tag
-  direction?: 'row' | 'column'
-  align?: 'start' | 'center' | 'end'
-  justify?: 'start' | 'center' | 'end' | 'space-between' | 'space-around' | 'space-evenly'
+  direction?: Direction
+  align?: Align
+  justify?: Justify
   gap?: Spacing
   break?: Break
   wrap?: boolean
@@ -31,7 +29,7 @@ const {
   ...rest
 } = Astro.props
 
-const Component = (as || tag) as HTMLTag
+const Component = as || tag || 'div'
 
 const gridStyle: Record<string, string> = {}
 if (gap) gridStyle['--gap'] = `var(--wa-space-${gap})`

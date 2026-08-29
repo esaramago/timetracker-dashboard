@@ -1,0 +1,23 @@
+---
+import '@awesome.me/webawesome/dist/styles/themes/default.css'
+import '@/css/main.css'
+import Header from './components/Header.astro'
+import Grid from './components/Grid.astro'
+---
+
+<html lang="pt">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>Time Tracker Dashboard</title>
+  </head>
+  <body>
+    <Header />
+    <Grid tag="main" direction="column" gap="l">
+      <slot />
+    </Grid>
+  </body>
+</html>
