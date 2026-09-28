@@ -112,7 +112,7 @@ document.getElementById('month')?.addEventListener('change', (event) => {
     </wa-card>
   ) : (
     <>
-      <Grid direction="column" gap="xs">
+      <Grid direction="column">
         <div class="progress-bar">
           <div
             title={`${time.decimalHours.toFixed(2)} horas faturáveis`}
@@ -125,10 +125,13 @@ document.getElementById('month')?.addEventListener('change', (event) => {
             {totalCost} €
           </div>
           <wa-progress-bar value={displayProgressPercentage} />
+          <div class="progress-bar__ticks">
+            <span>0h</span>
+            <span></span>
+            <span></span>
+          <span title="Objetivo mensal">{hoursGoal}h</span>
+          </div>
         </div>
-        <Grid align="center" justify="end" fullWidth>
-          <span class="progress-bar__total" title="Objetivo mensal">{hoursGoal}h</span>
-        </Grid>
       </Grid>
 
       <section>
@@ -157,19 +160,28 @@ document.getElementById('month')?.addEventListener('change', (event) => {
   width: 100%;
 }
 
+wa-progress-bar {
+  --track-height: 4rem;
+
+  &::part(base) {
+    border-radius: var(--wa-border-radius-m);
+  }
+}
+wa-card {
+  --spacing: var(--wa-space-s);
+}
+
 .progress-bar__label {
   position: absolute;
   z-index: 1;
-  inset-block-start: 50%;
-  transform: translateY(-50%);
-  color: #FFF;
   font-weight: bold;
   padding-inline-end: var(--wa-space-xs);
   text-align: end;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
   pointer-events: none;
   min-width: max-content;
-  color: var(--wa-color-brand-90)
+  color: var(--wa-color-brand-90);
+  margin-block-start: 1rem;
 }
 
 .progress-bar__hours {
@@ -179,20 +191,24 @@ document.getElementById('month')?.addEventListener('change', (event) => {
 
 .progress-bar__total {
   font-weight: bold;
-  text-align: end;
 }
-
-wa-progress-bar {
-  --track-height: 4.5rem;
-
-  &::part(base) {
-    border-radius: var(--wa-border-radius-xl);
+.progress-bar__ticks {
+  margin-block-start: calc(var(--wa-border-radius-s) * -1);
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  font-weight: bold;
+  > span {
+    display: flex;
+    flex-direction: column;
+    width: 2px;
+    &:before {
+      content: '';
+      display: block;
+      height: .6rem;
+      background-color: var(--wa-color-neutral-70);
+    }
   }
-}
-wa-card {
-  --spacing: var(--wa-space-s);
-  background-color: var(--wa-color-brand-50);
-  color: #FFF;
 }
 
 .entries_day {
@@ -210,7 +226,7 @@ wa-card {
   font-weight: bold;
 }
 .entries__no-description {
-  color: var(--wa-color-neutral-90);
+  color: var(--wa-color-neutral-40);
   font-size: var(--wa-font-size-s);
 }
 </style>
