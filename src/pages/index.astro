@@ -89,8 +89,10 @@ import '@webawesome/progress-bar/progress-bar.js'
 import '@webawesome/card/card.js'
 import '@webawesome/callout/callout.js'
 
-document.getElementById('month')?.addEventListener('change', (event) => {
-  (event.target as HTMLElement).closest('form')?.requestSubmit()
+document.getElementById('month')?.addEventListener('change', async (event) => {
+  const target = event.target as HTMLElement & { updateComplete?: Promise<boolean> }
+  await target.updateComplete
+  target.closest('form')?.requestSubmit()
 })
 </script>
 
