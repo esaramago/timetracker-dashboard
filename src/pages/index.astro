@@ -7,6 +7,7 @@ import Grid from '../components/Grid.astro'
 
 const vesselIndexProjectId = '7f42c483-e6ba-41ff-bcbc-1f4374a8b068'
 
+const now = new Date()
 let year: number
 let monthNumber: number
 let selectedMonth: string
@@ -18,7 +19,6 @@ if (monthParam && /^\d{4}-\d{2}$/.test(monthParam)) {
   monthNumber = m
   selectedMonth = monthParam
 } else {
-  const now = new Date()
   year = now.getFullYear()
   monthNumber = now.getMonth() + 1
   selectedMonth = `${year}-${monthNumber.toString().padStart(2, '0')}`
@@ -28,6 +28,10 @@ const date = new Date(year, monthNumber - 1, 1)
 const lastDay = new Date(year, monthNumber, 0).getDate()
 const start = `${year}-${monthNumber.toString().padStart(2, '0')}-01T00:00:00Z`
 const end = `${year}-${monthNumber.toString().padStart(2, '0')}-${String(lastDay).padStart(2, '0')}T23:59:59Z`
+
+const isCurrentMonth = now.getFullYear() === year && now.getMonth() + 1 === monthNumber
+const currentDay = now.getDate()
+const monthProgressPercentage = Number(((currentDay / lastDay) * 100).toFixed(1))
 
 let projectTimeEntries: ProjectTimeEntry[] = []
 let project: Project | null = null
@@ -126,7 +130,19 @@ document.getElementById('month')?.addEventListener('change', async (event) => {
             <span class="progress-bar__hours">{time.hours}h {time.minutes}m</span><br />
             {totalCost} €
           </div>
-          <wa-progress-bar value={displayProgressPercentage} />
+          <div class="progress-bar__container">
+            <wa-progress-bar value={displayProgressPercentage} />
+            {isCurrentMonth && (
+              <div
+              class="progress-bar__month-marker"
+              title={`Dia ${currentDay} de ${lastDay} (${monthProgressPercentage}%)`}
+              data-day={currentDay}
+              style={{
+                '--month-progress': `${monthProgressPercentage}%`,
+              }}
+              ></div>
+            )}
+          </div>
           <div class="progress-bar__ticks">
             <span>0h</span>
             <span></span>
@@ -173,6 +189,10 @@ wa-card {
   --spacing: var(--wa-space-s);
 }
 
+.progress-bar__container {
+  position: relative;
+}
+
 .progress-bar__label {
   position: absolute;
   z-index: 1;
@@ -211,6 +231,12 @@ wa-card {
       background-color: var(--wa-color-neutral-70);
     }
   }
+}
+.progress-bar__month-marker {
+  position: absolute;
+  inset: 0 auto 0 var(--month-progress);
+  width: 2px;
+  background-color: var(--wa-color-neutral-30);
 }
 
 .entries_day {
