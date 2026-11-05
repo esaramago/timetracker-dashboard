@@ -4,8 +4,7 @@ import getProjectTimeEntries from '../services/projectTimeEntries'
 import getProject from '../services/project'
 import type { Project, ProjectTimeEntry } from '../types'
 import Grid from '../components/Grid.astro'
-
-const vesselIndexProjectId = '7f42c483-e6ba-41ff-bcbc-1f4374a8b068'
+import { HOURS_GOAL, SOLIDTIME_PROJECT_ID } from '@/lib/config'
 
 const now = new Date()
 let year: number
@@ -39,8 +38,8 @@ let errorMessage = ''
 
 try {
   const [entries, proj] = await Promise.all([
-    getProjectTimeEntries(vesselIndexProjectId, start, end),
-    getProject(vesselIndexProjectId),
+    getProjectTimeEntries(SOLIDTIME_PROJECT_ID, start, end),
+    getProject(SOLIDTIME_PROJECT_ID),
   ])
   projectTimeEntries = entries || []
   project = proj
@@ -52,8 +51,7 @@ const time = getTime(projectTimeEntries)
 const billableRate = project?.billable_rate ?? 0
 const totalCost = (time.decimalHours * (billableRate / 100)).toFixed(2)
 
-const hoursGoal = 60
-const totalHoursPercentage = Math.round((time.decimalHours / hoursGoal) * 100)
+const totalHoursPercentage = Math.round((time.decimalHours / HOURS_GOAL) * 100)
 const displayProgressPercentage = Math.min(100, Math.max(0, totalHoursPercentage))
 
 function getTime(entries: ProjectTimeEntry[]) {
@@ -147,7 +145,7 @@ document.getElementById('month')?.addEventListener('change', async (event) => {
             <span>0h</span>
             <span></span>
             <span></span>
-          <span title="Objetivo mensal">{hoursGoal}h</span>
+          <span title="Objetivo mensal">{HOURS_GOAL}h</span>
           </div>
         </div>
       </Grid>
