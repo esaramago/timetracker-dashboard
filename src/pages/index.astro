@@ -77,10 +77,27 @@ function formatDuration(seconds: number) {
   return `${h}h ${m}m`
 }
 
-function formatDate(dateStr: string) {
-  const d = new Date(dateStr)
-  return d.toLocaleDateString('pt-PT', { day: '2-digit'})
+function getDateKey(dateStr: string) {
+  return dateStr.slice(0, 10)
 }
+
+function parseDateKey(key: string) {
+  const [y, m, d] = key.split('-').map(Number)
+  return new Date(Date.UTC(y, m - 1, d))
+}
+
+const entriesByDay = projectTimeEntries.reduce((days, entry) => {
+  const key = getDateKey(entry.start)
+  days.set(key, [...(days.get(key) ?? []), entry])
+  return days
+}, new Map<string, ProjectTimeEntry[]>())
+
+const entryGroups = [...entriesByDay.entries()]
+  .sort(([a], [b]) => b.localeCompare(a))
+  .map(([key, entries]) => ({
+    date: parseDateKey(key),
+    entries: entries.toSorted((a, b) => b.start.localeCompare(a.start)),
+  }))
 ---
 
 <script>
@@ -152,17 +169,21 @@ document.getElementById('month')?.addEventListener('change', async (event) => {
 
       <section>
         <h3>Registos do mês ({projectTimeEntries.length})</h3>
-        <Grid direction="column" gap="xs">
-          {projectTimeEntries.map((entry) => (
-            <wa-card>
-              <Grid align="center" justify="space-between" gap="xs">
-                <Grid gap="xs" align="center">
-                  <span class="entries_day">{formatDate(entry.start)}</span>
-                  { entry.description ? <span>{entry.description}</span> : <span class="entries__no-description">Sem descrição</span> }
-                </Grid>
-                <span class="entries__duration">{formatDuration(entry.duration)}</span>
+        <Grid direction="column" gap="xl">
+          {entryGroups.map((group) => (
+            <Grid direction="column" gap="s">
+              <h4>
+                <wa-format-date date={group.date} day="2-digit" month="2-digit" time-zone="UTC" />
+              </h4>
+              <Grid direction="column" gap="s">
+                {group.entries.map((entry) => (
+                  <Grid align="center" justify="space-between" gap="xs">
+                    { entry.description ? <span class="entries__description">{entry.description}</span> : <span class="entries__no-description">Sem descrição</span> }
+                    <span class="entries__duration">{formatDuration(entry.duration)}</span>
+                  </Grid>
+                ))}
               </Grid>
-            </wa-card>
+            </Grid>
           ))}
         </Grid>
       </section>
@@ -237,18 +258,10 @@ wa-card {
   background-color: var(--wa-color-neutral-30);
 }
 
-.entries_day {
-  width: 2rem;
-  aspect-ratio: 1;
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  font-weight: bold;
-  background-color: var(--wa-color-brand-90);
-  border-radius: var(--wa-border-radius-circle);
-  color: var(--wa-color-brand-10);
-}
 .entries__duration {
+  font-weight: bold;
+}
+.entries__description {
   font-weight: bold;
 }
 .entries__no-description {

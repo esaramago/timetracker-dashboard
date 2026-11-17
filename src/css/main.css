@@ -2,13 +2,18 @@
 
 body,
 h2,
+h4,
 p {
   margin: 0;
+}
+h4 {
+  font-weight: 400;
+  font-size: var(--wa-font-size-s);
 }
 body {
   max-width: 30rem;
   margin-inline: auto;
-  padding: var(--wa-space-m);
+  padding: var(--wa-space-m) var(--wa-space-xl) var(--wa-space-xl);
 }
 
 .is-visually-hidden {
